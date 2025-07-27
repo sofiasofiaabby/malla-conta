@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Malla Curricular - Contaduría Pública y Finanzas</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #ffeef7;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    h1, h2 {
+      text-align: center;
+      color: #b14f7a;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 15px;
+    }
+    .period {
+      background: white;
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .subject {
+      display: flex;
+      align-items: center;
+      margin: 6px 0;
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 6px;
+      transition: 0.3s;
+      position: relative;
+    }
+    .subject:hover {
+      background-color: #ffe1ec;
+    }
+    .subject.completed {
+      text-decoration: line-through;
+      color: gray;
+    }
+    .subject.locked {
+      color: #aaa;
+      pointer-events: none;
+    }
+    .subject.locked::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      left: 100%;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #f9c5d5;
+      color: #000;
+      padding: 5px;
+      border-radius: 5px;
+      white-space: nowrap;
+      font-size: 0.8em;
+      margin-left: 10px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .subject.locked:hover::after {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <h1>Malla Curricular Interactiva</h1>
+  <div id="malla"></div>
+
+  <script>
+    const subjects = {
+      "Año 1": {
+        "Periodo 1": ["Filosofía", "Historia de Honduras", "Métodos Cuantitativos 1", "Español General", "Sociología"],
+        "Periodo 2": [
+          { name: "Redacción general", req: ["Español General"] },
+          { name: "Métodos Cuantitativos 2", req: ["Métodos Cuantitativos 1"] },
+          "Educación Ambiental", "Educación Artística o Cultura Física",
+          { name: "Principios de Economía", req: ["Métodos Cuantitativos 1"] }
+        ],
+        "Periodo 3": [
+          { name: "Derecho Mercantil y Laboral", req: ["Sociología"] },
+          { name: "Introducción a la Contabilidad", req: ["Métodos Cuantitativos 2"] },
+          { name: "Métodos Cuantitativos 3", req: ["Métodos Cuantitativos 2"] },
+          { name: "Microeconomía", req: ["Principios de Economía", "Métodos Cuantitativos 2"] },
+          "Ingles 1"
+        ]
+      },
+      "Año 2": {
+        "Periodo 4": [
+          { name: "Contabilidad Financiera 1", req: ["Introducción a la Contabilidad"] },
+          { name: "Administración", req: ["Derecho Mercantil y Laboral"] },
+          { name: "Macroeconomía", req: ["Microeconomía"] },
+          { name: "Matemática Financiera", req: ["Métodos Cuantitativos 3"] },
+          { name: "Ingles 2", req: ["Ingles 1"] }
+        ],
+        "Periodo 5": [
+          { name: "Contabilidad Financiera 2", req: ["Contabilidad Financiera 1", "Matemática Financiera"] },
+          { name: "Tecnologías de Información y Comunicación", req: ["Contabilidad Financiera 1"] },
+          { name: "Derecho Administrativo", req: ["Contabilidad Financiera 1"] },
+          { name: "Generación de Negocios", req: ["Administración"] },
+          { name: "Desarrollo Gerencial", req: ["Administración"] }
+        ],
+        "Periodo 6": [
+          { name: "Contabilidad de Sociedades Mercantiles", req: ["Contabilidad Financiera 2", "Derecho Mercantil y Laboral"] },
+          { name: "Costos Industriales", req: ["Contabilidad Financiera 2"] },
+          { name: "Análisis de Estados Financieros", req: ["Contabilidad Financiera 2"] },
+          { name: "Análisis Cuantitativos", req: ["Métodos Cuantitativos 3"] },
+          { name: "Desarrollo de Capital Humano", req: ["Desarrollo Gerencial"] }
+        ]
+      },
+      "Año 3": {
+        "Periodo 7": [
+          { name: "Contabilidad Avanzada", req: ["Contabilidad de Sociedades Mercantiles"] },
+          { name: "Costos Gerenciales", req: ["Costos Industriales"] },
+          { name: "Finanzas Corporativas", req: ["Análisis de Estados Financieros"] },
+          { name: "Contabilidad Gubernamental", req: ["Contabilidad de Sociedades Mercantiles"] }
+        ],
+        "Periodo 8": [
+          { name: "Contabilidad Gerencial", req: ["Costos Gerenciales"] },
+          { name: "Informática Aplicada", req: ["Finanzas Corporativas"] },
+          { name: "Finanzas Públicas", req: ["Contabilidad Gubernamental"] },
+          { name: "Fundamentos de Auditoria", req: ["Finanzas Corporativas"] }
+        ],
+        "Periodo 9": [
+          { name: "Seminario Tributario Contable", req: ["Fundamentos de Auditoria"] },
+          { name: "Métodos y Técnicas de Investigación", req: ["Finanzas Públicas"] },
+          { name: "Mercado Dinero y Capitales", req: ["Finanzas Públicas"] },
+          { name: "Auditoria Financiera", req: ["Fundamentos de Auditoria"] }
+        ]
+      },
+      "Año 4": {
+        "Periodo 10": [
+          { name: "Estrategias Financieras y Fiscales", req: ["Mercado Dinero y Capitales"] },
+          { name: "Organización Administrativa y Financiera", req: ["Métodos y Técnicas de Investigación"] },
+          { name: "Contabilidad para Entidades Reguladas", req: ["Mercado Dinero y Capitales"] },
+          { name: "Auditoria Interna", req: ["Auditoria Financiera"] }
+        ],
+        "Periodo 11": [
+          { name: "Sistema de Gestión de Riesgos", req: ["Contabilidad para Entidades Reguladas"] },
+          { name: "Normativa Contable Internacional", req: ["Auditoria Interna"] },
+          { name: "Auditoria de Entidades Reguladas", req: ["Auditoria Interna"] },
+          { name: "Ética Profesional", req: ["Auditoria Interna"] }
+        ],
+        "Periodo 12": [
+          { name: "Análisis y Evaluación de Proyectos de Inversión", req: ["Auditoria de Entidades Reguladas"] },
+          { name: "Investigación Financieras", req: ["Normativa Contable Internacional"] },
+          { name: "Auditoria de Sistemas Informáticos", req: ["Auditoria de Entidades Reguladas"] },
+          { name: "Gestión Integral del Riesgo", req: ["Sistema de Gestión de Riesgos"] }
+        ],
+        "Periodo 13": [
+          { name: "Proyecto de Investigación", req: [
+            "Filosofía", "Historia de Honduras", "Métodos Cuantitativos 1", "Español General", "Sociología",
+            "Redacción general", "Métodos Cuantitativos 2", "Educación Ambiental", "Educación Artística o Cultura Física", "Principios de Economía",
+            "Derecho Mercantil y Laboral", "Introducción a la Contabilidad", "Métodos Cuantitativos 3", "Microeconomía", "Ingles 1",
+            "Contabilidad Financiera 1", "Administración", "Macroeconomía", "Matemática Financiera", "Ingles 2",
+            "Contabilidad Financiera 2", "Tecnologías de Información y Comunicación", "Derecho Administrativo", "Generación de Negocios", "Desarrollo Gerencial",
+            "Contabilidad de Sociedades Mercantiles", "Costos Industriales", "Análisis de Estados Financieros", "Análisis Cuantitativos", "Desarrollo de Capital Humano",
+            "Contabilidad Avanzada", "Costos Gerenciales", "Finanzas Corporativas", "Contabilidad Gubernamental",
+            "Contabilidad Gerencial", "Informática Aplicada", "Finanzas Públicas", "Fundamentos de Auditoria",
+            "Seminario Tributario Contable", "Métodos y Técnicas de Investigación", "Mercado Dinero y Capitales", "Auditoria Financiera",
+            "Estrategias Financieras y Fiscales", "Organización Administrativa y Financiera", "Contabilidad para Entidades Reguladas", "Auditoria Interna",
+            "Sistema de Gestión de Riesgos", "Normativa Contable Internacional", "Auditoria de Entidades Reguladas", "Ética Profesional",
+            "Análisis y Evaluación de Proyectos de Inversión", "Investigación Financieras", "Auditoria de Sistemas Informáticos", "Gestión Integral del Riesgo"
+          ] }
+        ]
+      }
+    };
+
+    const storageKey = "mallaProgreso";
+    let progreso = JSON.parse(localStorage.getItem(storageKey) || "{}");
+
+    function saveProgress() {
+      localStorage.setItem(storageKey, JSON.stringify(progreso));
+    }
+
+    function isCompleted(nombre) {
+      return progreso[nombre];
+    }
+
+    function canUnlock(reqs) {
+      return reqs.every(r => isCompleted(r));
+    }
+
+    function toggleSubject(nombre) {
+      progreso[nombre] = !progreso[nombre];
+      saveProgress();
+      render();
+    }
+
+    function render() {
+      const contenedor = document.getElementById("malla");
+      contenedor.innerHTML = "";
+      Object.entries(subjects).forEach(([año, periodos]) => {
+        const añoTitulo = document.createElement("h2");
+        añoTitulo.textContent = año;
+        contenedor.appendChild(añoTitulo);
+
+        const grid = document.createElement("div");
+        grid.className = "grid";
+
+        Object.entries(periodos).forEach(([periodo, asignaturas]) => {
+          const card = document.createElement("div");
+          card.className = "period";
+          const titulo = document.createElement("h3");
+          titulo.textContent = periodo;
+          card.appendChild(titulo);
+
+          asignaturas.forEach(asig => {
+            const nombre = typeof asig === 'string' ? asig : asig.name;
+            const reqs = typeof asig === 'string' ? [] : asig.req;
+            const div = document.createElement("div");
+            div.className = "subject";
+            if (isCompleted(nombre)) div.classList.add("completed");
+            else if (reqs.length && !canUnlock(reqs)) {
+              div.classList.add("locked");
+              div.dataset.tooltip = "Requiere: " + reqs.join(", ");
+            } else {
+              div.addEventListener("click", () => toggleSubject(nombre));
+            }
+            div.textContent = nombre;
+            card.appendChild(div);
+          });
+
+          grid.appendChild(card);
+        });
+        contenedor.appendChild(grid);
+      });
+    }
+
+    render();
+  </script>
+</body>
+</html>
