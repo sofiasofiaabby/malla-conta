@@ -46,7 +46,8 @@
     }
     .subject.locked {
       color: #aaa;
-      pointer-events: none;
+      pointer-events: auto;
+      cursor: not-allowed;
     }
     .subject.locked::after {
       content: attr(data-tooltip);
@@ -63,6 +64,7 @@
       margin-left: 10px;
       opacity: 0;
       transition: opacity 0.3s;
+      z-index: 10;
     }
     .subject.locked:hover::after {
       opacity: 1;
@@ -216,13 +218,20 @@
             const reqs = typeof asig === 'string' ? [] : asig.req;
             const div = document.createElement("div");
             div.className = "subject";
-            if (isCompleted(nombre)) div.classList.add("completed");
-            else if (reqs.length && !canUnlock(reqs)) {
+
+            if (isCompleted(nombre)) {
+              div.classList.add("completed");
+            }
+
+            if (reqs.length && !canUnlock(reqs)) {
               div.classList.add("locked");
               div.dataset.tooltip = "Requiere: " + reqs.join(", ");
             } else {
-              div.addEventListener("click", () => toggleSubject(nombre));
+              div.addEventListener("click", () => {
+                toggleSubject(nombre);
+              });
             }
+
             div.textContent = nombre;
             card.appendChild(div);
           });
